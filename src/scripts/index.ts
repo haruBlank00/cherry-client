@@ -1,3 +1,3 @@
-import { daraz } from "./modules/darazScrapper";
+import { daraz } from "./modules/daraz/darazScrapper";
 
 daraz.getCategories();
