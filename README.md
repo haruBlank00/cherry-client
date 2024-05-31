@@ -56,3 +56,6 @@ const categories = [
   },
 ];
 ```
+
+- phew! now we have a server where we can post categories
+- so lets do that, scrap and send to server

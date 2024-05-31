@@ -5,3 +5,10 @@ export const getElement = (selector: string) => {
 export const getElements = (selector: string) => {
   return document.querySelectorAll(selector);
 };
+
+export function checkSite() {
+  const whiteListeOrigins = ["https://www.daraz.com.np"];
+  const currentOrigin = window.location.origin;
+
+  return whiteListeOrigins.includes(currentOrigin);
+}

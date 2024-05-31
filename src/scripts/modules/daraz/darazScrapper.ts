@@ -1,7 +1,10 @@
+import { AxiosError, AxiosResponse } from "axios";
+import { cherryAxios } from "../../utils/axios";
 import { getElement } from "../../utils/index";
 
 interface DarazScrapperInterface {
-  getCategories(): void;
+  scrapCategories(): void;
+  saveCategories(categories: TLevelOne[]): void;
 }
 class DarazScrapper implements DarazScrapperInterface {
   private static instance: DarazScrapper;
@@ -11,13 +14,13 @@ class DarazScrapper implements DarazScrapperInterface {
     }
     return DarazScrapper.instance;
   }
-  getCategories(): void {
+  scrapCategories(): { categories: TLevelOne[] | null; error: string | null } {
     // this is the root ul element which wraps all the categories
     const rootCate = getElement("[data-spm='cate']") as HTMLUListElement;
 
     if (!rootCate) {
-      console.error("Oh NOOOO!!!. Couldn't find the root element. :(");
-      return;
+      const errorMsg = "Oh NOOOO!!!. Couldn't find the root element. :(";
+      return { categories: null, error: errorMsg };
     }
 
     // this is the NodeList of all the categories at level 1
@@ -90,7 +93,32 @@ class DarazScrapper implements DarazScrapperInterface {
         });
     });
 
-    console.log({ level_1 });
+    return { categories: level_1, error: null };
+  }
+
+  async saveCategories(categories: TLevelOne[]) {
+    try {
+      const response = await cherryAxios<
+        AxiosResponse<{ success: boolean; message: string }>
+      >({
+        url: "/daraz/save-categories",
+        method: "POST",
+        data: categories,
+      });
+
+      if (!response.data.data.success) {
+        throw Error(response.data.data.message);
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error({
+          message: error.message,
+          name: error.name,
+          status: error.status,
+        });
+      }
+      console.error({ error }, "from save categories");
+    }
   }
 }
 
