@@ -44,7 +44,7 @@ export function checkSite() {
     };
   }
 
-  const isProductPage = path.split("/")[0] === "products";
+  const isProductPage = path.split("/")[1] === "products";
   if (isProductPage) {
     return {
       whiteListed: true,
@@ -52,9 +52,9 @@ export function checkSite() {
     };
   }
 
-  const isCategoryPage = path.includes("spm");
+  const search = window.location.search;
+  const isCategoryPage = search.includes("spm");
   if (isCategoryPage) {
-    const search = window.location.search;
     /**
      * if we are on Level2 category, search will have something like cate_1
      * ?spm=a2a0e.searchlistcategory.cate_1.1.400a3c49L8dnEo'
@@ -65,12 +65,12 @@ export function checkSite() {
     const levelCode = search.split(".")[2];
     // it will be "cate_1" or "cate_1_1"
     const levels = levelCode.split("_");
-    const level = levels.length; // will be 2 if level is 2 and 3 is lvl is 3
+    const level = levels.length; // will be 2 if level is 1 and 3 is lvl is 2
     // in home page category, 1st category is lvl1, but we can't visit it
     // after that, level2 is consider level1 when category page is visited
 
     let currentPage = Pages.LEVEL_1;
-    if (level === 2) {
+    if (level === 3) {
       currentPage = Pages.LEVEL_2;
     }
     return {

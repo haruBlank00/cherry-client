@@ -15,6 +15,7 @@ import { Pages, checkSite } from "./utils";
   switch (currentPage) {
     case Pages.HOME: {
       const { categories, error } = daraz.scrapCategories();
+      console.log("home page");
       if (error) {
         console.error(error);
       } else {
@@ -23,6 +24,22 @@ import { Pages, checkSite } from "./utils";
           data: categories,
         });
       }
+      return;
+    }
+
+    case Pages.LEVEL_1: {
+      console.log("level 1 category");
+      break;
+    }
+
+    case Pages.LEVEL_2: {
+      console.log("level_2");
+      break;
+    }
+
+    case Pages.PRODUCT: {
+      console.log("product page");
+      break;
     }
   }
 })();
