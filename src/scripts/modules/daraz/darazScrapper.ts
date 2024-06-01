@@ -1,6 +1,12 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { cherryAxios } from "../../utils/axios";
 import { getElement, getElements } from "../../utils/index";
+import {
+  imageVariantSchema,
+  priceSchema,
+  ratingsAndReviewSchema,
+  selectorSchema,
+} from "./type/product.zod";
 
 interface DarazScrapperInterface {
   scrapCategories(): void;
@@ -60,7 +66,6 @@ class DarazScrapper implements DarazScrapperInterface {
       // this is the level 2 categories
       // cate = "cate_x" x corresponds to the the index of level_1 category
       const level_2_cates_EL = rootCate.querySelector(`.${id}`);
-      console.log({ level_2_cates_EL });
       const level_2_spm = level_2_cates_EL?.getAttribute("data-spm")!;
       level_2_cates_EL
         ?.querySelectorAll(":scope > li")
@@ -108,7 +113,6 @@ class DarazScrapper implements DarazScrapperInterface {
         });
     });
 
-    console.log({ level_1 });
     return { categories: level_1, error: null };
   }
 
@@ -116,7 +120,6 @@ class DarazScrapper implements DarazScrapperInterface {
    * Save scrapped home page category to server
    */
   async saveCategories(categories: TLevelOne[]) {
-    console.log({ categories });
     try {
       const response = await cherryAxios<
         AxiosResponse<{ success: boolean; message: string }>
@@ -147,24 +150,28 @@ class DarazScrapper implements DarazScrapperInterface {
   }
 
   // scrap single product from product page
-  scrapProduct() {
+  scrapProduct(): Product | null {
     // find carousel and select it
     // find image src and alt
     // ok great, img.item-gallery__thumbnail-image is the elemnt we want
     const product = {
-      images: [],
       selectors: [],
     } as Partial<Product>;
 
+    const images: ImageVariant[] = [];
     const galleryImages = getElements(".item-gallery__image-wrapper img");
     galleryImages.forEach((image) => {
       const alt = image.getAttribute("alt")!;
       const src = image.getAttribute("src")!;
-      product.images?.push({
+      images?.push({
         alt,
         src,
       });
     });
+    const imageSchemaResult = imageVariantSchema.safeParse(images);
+    if (imageSchemaResult.success) {
+      product.images = imageSchemaResult.data;
+    }
 
     // find product name and scrap :)
     const nameEL = getElement(".pdp-mod-product-badge-title");
@@ -181,11 +188,15 @@ class DarazScrapper implements DarazScrapperInterface {
     const discountEL = getElement(".pdp-product-price__discount");
     const discountedPrice = discountEL?.textContent?.trim()!;
 
-    product.price = {
+    const price = {
       current: currentPrice,
       original: originPrice,
       discount: discountedPrice,
     };
+    const priceSchemaResult = priceSchema.safeParse(price);
+    if (priceSchemaResult.success) {
+      product.price = priceSchemaResult.data;
+    }
 
     // scrap selectors and variants
     /**
@@ -202,29 +213,21 @@ class DarazScrapper implements DarazScrapperInterface {
     const selectors: Selector[] = [];
     const skuSelectorEL = getElement(".sku-selector");
     skuSelectorEL?.querySelectorAll(".sku-prop").forEach((prop) => {
-      console.log({ prop });
       // get title
       const sectionTitle = prop
         .querySelector("h6.section-title")
         ?.textContent?.trim()!; // color-family
 
-      const sectionContentEL = prop.querySelector(".section-content");
-      // section content can have header (or not)
-      const propTitleEL = sectionContentEL?.querySelector(
-        ".sku-prop-content-header" // .sku-name -> Blank
-      );
       const propSectionTitle = prop
         .querySelector(".sku-name")
         ?.textContent?.trim()!;
 
-      console.log({ propTitleEL, propSectionTitle });
       const propContent = prop.querySelector(".sku-prop-content");
 
       // contents can have bunch of images without textContent
       // or variants with textContent
 
       const variants: Variant[] = [];
-
       propContent
         ?.querySelectorAll(".sku-variable-name-text")
         .forEach((variant) => {
@@ -235,10 +238,8 @@ class DarazScrapper implements DarazScrapperInterface {
 
       propContent?.querySelectorAll("img").forEach((variant) => {
         const src = variant.getAttribute("src")!;
-        const alt = variant.getAttribute("alt")!;
-        variants.push({ image: { src, alt } });
+        variants.push({ image: { src } });
       });
-      propContent?.querySelectorAll;
 
       const selector: Selector = {
         title: sectionTitle,
@@ -249,7 +250,10 @@ class DarazScrapper implements DarazScrapperInterface {
       selectors.push(selector);
     });
 
-    product.selectors = selectors;
+    const selectorSchemaResult = selectorSchema.safeParse(selectors);
+    if (selectorSchemaResult.success) {
+      product.selectors = selectorSchemaResult.data;
+    }
 
     // ************************************
     // Scrap ratings and reviews...
@@ -282,7 +286,6 @@ class DarazScrapper implements DarazScrapperInterface {
     ratingsAndReview.total = total;
 
     const detailEL = getElement(".review-info .detail");
-
     detailEL?.querySelectorAll("li").forEach((detailEl, index, array) => {
       const arrayLength = array.length;
       const star = (arrayLength -
@@ -310,7 +313,13 @@ class DarazScrapper implements DarazScrapperInterface {
         });
       }
     });
-    product.ratingsAndReviews = ratingsAndReview;
+
+    const ratingsAndReviewResult =
+      ratingsAndReviewSchema.safeParse(ratingsAndReview);
+
+    if (ratingsAndReviewResult.success) {
+      product.ratingsAndReviews = ratingsAndReview;
+    }
 
     // *** *** *** LET'S GOOOOO
     // SCRAP PRODUCT DETAILS AND STUFFS
@@ -352,7 +361,32 @@ class DarazScrapper implements DarazScrapperInterface {
 
     product.details = details;
 
-    console.log({ product });
+    return product as Product;
+  }
+
+  async saveProduct(product: Product) {
+    try {
+      const response = await cherryAxios<
+        AxiosResponse<{ success: boolean; message: string }>
+      >({
+        url: "/daraz/save-product",
+        method: "POST",
+        data: product,
+      });
+
+      if (!response.data.data.success) {
+        throw Error(response.data.data.message);
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error({
+          message: error.message,
+          name: error.name,
+          status: error.status,
+        });
+      }
+      console.error({ error }, "from save categories");
+    }
   }
 }
 

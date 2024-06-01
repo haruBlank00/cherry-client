@@ -1,12 +1,11 @@
 import { EventsEnum } from "./constants";
 import { daraz } from "./modules/daraz/darazScrapper";
-import { scrapTracker } from "./modules/daraz/scrapTracker/ScrapTracker";
+import { scrapTracker } from "./modules/scrapTracker/ScrapTracker";
 import { Pages, checkSite } from "./utils";
 
 // we should better handle comunation with server
 
 const startScrap = async () => {
-  console.log(" i am running");
   const { currentPage, whiteListed } = checkSite();
   if (!whiteListed) {
     console.info(
@@ -48,15 +47,20 @@ const startScrap = async () => {
 
     case Pages.PRODUCT: {
       console.log("product page");
-      daraz.scrapProduct();
-      break;
+      const product = daraz.scrapProduct();
+      if (product) {
+        console.log("event emittttt");
+        chrome.runtime.sendMessage({
+          type: EventsEnum.SAVE_PRODUCT,
+          data: product,
+        });
+      }
     }
   }
 };
 startScrap();
 
 window.addEventListener("load", () => {
-  console.log("I am also loaded");
   try {
     startScrap();
   } catch (error) {

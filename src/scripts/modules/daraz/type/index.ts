@@ -59,21 +59,22 @@ type Categories = TLevelOne;
 type Product = {
   images: { src: string; alt: string }[];
   name: string;
-  price: {
-    original: string;
-    current: string;
-    discount: string;
-  };
+  price: Price;
   selectors: Selector[];
   ratingsAndReviews: RatingsAndReview;
   details: Details;
+};
+
+type Price = {
+  original: string;
+  current: string;
+  discount: string;
 };
 
 type ImageVariant = { src: string; alt: string };
 type Variant = {
   image?: {
     src: string;
-    alt: string;
   };
   label?: string;
 };
