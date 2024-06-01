@@ -201,7 +201,6 @@ class DarazScrapper implements DarazScrapperInterface {
      */
     const selectors: Selector[] = [];
     const skuSelectorEL = getElement(".sku-selector");
-    console.log({ skuSelectorEL });
     skuSelectorEL?.querySelectorAll(".sku-prop").forEach((prop) => {
       console.log({ prop });
       // get title
@@ -252,8 +251,108 @@ class DarazScrapper implements DarazScrapperInterface {
 
     product.selectors = selectors;
 
+    // ************************************
+    // Scrap ratings and reviews...
+    // const ratings = {
+    //   scrore: 0,
+    //   total: 0,
+    //   detail: {
+    //     5: 0,
+    //     4: 0,
+    //     3: 0,
+    //     2: 0,
+    //     1: 0,
+    //   },
+    // };
+    const ratingsAndReview: RatingsAndReview = {
+      score: "0",
+      detail: {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      },
+      reviewTags: [],
+      total: "0",
+    };
+    const score = getElement(".review-info .score")?.textContent?.trim()!;
+    const total = getElement(".review-info .rate-num")?.textContent?.trim()!;
+    ratingsAndReview.score = score;
+    ratingsAndReview.total = total;
+
+    const detailEL = getElement(".review-info .detail");
+
+    detailEL?.querySelectorAll("li").forEach((detailEl, index, array) => {
+      const arrayLength = array.length;
+      const star = (arrayLength -
+        index) as keyof typeof ratingsAndReview.detail;
+      const percent = detailEl.querySelector(".percent")?.textContent?.trim()!;
+      ratingsAndReview.detail[star] = Number(percent);
+    });
+
+    // now let's do for ratings and review
+    // what people like about it
+
+    getElements(".review-filter").forEach((reviewTagEL) => {
+      const tagNcount = reviewTagEL
+        ?.querySelector(".review-filter .review-tag")
+        ?.textContent?.trim()!;
+
+      const tagNcountPattern = /(\w+)\((\d+)\)/;
+      const tagNcountMatch = tagNcount.match(tagNcountPattern);
+
+      if (tagNcountMatch) {
+        const [_, tag, count] = tagNcountMatch;
+        ratingsAndReview.reviewTags.push({
+          count,
+          tag,
+        });
+      }
+    });
+    product.ratingsAndReviews = ratingsAndReview;
+
+    // *** *** *** LET'S GOOOOO
+    // SCRAP PRODUCT DETAILS AND STUFFS
+    const details: Details = {
+      highlights: [],
+      contents: "",
+      specifications: [],
+    };
+
+    // find highlights
+    getElement(".pdp-product-highlights")
+      ?.querySelectorAll("li")
+      .forEach((highlightEL) => {
+        const highlight = highlightEL.textContent?.trim()!;
+        details.highlights.push({
+          label: highlight,
+        });
+      });
+
+    // find contents
+    const contents = getElement(".detail-content")?.textContent;
+    details.contents = contents || "";
+
+    // find specifications
+    getElement("ul.specification-keys")
+      ?.querySelectorAll("li")
+      .forEach((specificationEL) => {
+        const title = specificationEL
+          .querySelector(".key-title")
+          ?.textContent?.trim()!;
+        const value = specificationEL
+          .querySelector(".key-value")
+          ?.textContent?.trim()!;
+        details.specifications.push({
+          title,
+          value,
+        });
+      });
+
+    product.details = details;
+
     console.log({ product });
-    // return product;
   }
 }
 

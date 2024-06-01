@@ -5,8 +5,7 @@ import { Pages, checkSite } from "./utils";
 
 // we should better handle comunation with server
 
-console.log("dontent loader");
-(async function () {
+const startScrap = async () => {
   console.log(" i am running");
   const { currentPage, whiteListed } = checkSite();
   if (!whiteListed) {
@@ -53,4 +52,14 @@ console.log("dontent loader");
       break;
     }
   }
-})();
+};
+startScrap();
+
+window.addEventListener("load", () => {
+  console.log("I am also loaded");
+  try {
+    startScrap();
+  } catch (error) {
+    console.error("Error in startScrap:", error);
+  }
+});

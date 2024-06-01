@@ -3,6 +3,8 @@ import { daraz } from "../modules/daraz/darazScrapper";
 import { Message } from "./types";
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  const b = document.querySelector("body");
+  console.log({ b });
   if (changeInfo.status === "complete" && /^http/.test(tab.url || "")) {
     chrome.scripting.executeScript({
       target: { tabId },
