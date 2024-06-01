@@ -1,5 +1,6 @@
 import { EventsEnum } from "./constants";
 import { daraz } from "./modules/daraz/darazScrapper";
+import { scrapTracker } from "./modules/daraz/scrapTracker/ScrapTracker";
 import { Pages, checkSite } from "./utils";
 
 // we should better handle comunation with server
@@ -8,14 +9,22 @@ import { Pages, checkSite } from "./utils";
   console.log(" i am running");
   const { currentPage, whiteListed } = checkSite();
   if (!whiteListed) {
-    console.info("This is not Daraz. Let's not bother...");
+    console.info(
+      "This is not Daraz or page we don't care. Let's not bother..."
+    );
     return;
   }
 
+  const isScrapable = await scrapTracker.isScrapable();
+  if (!isScrapable) {
+    console.log("*** *** ALREADY SCRAPPED *** ***");
+    return;
+  }
+
+  console.log("*** *** NEW TO SCRAP *** *** ");
   switch (currentPage) {
     case Pages.HOME: {
       const { categories, error } = daraz.scrapCategories();
-      console.log("home page");
       if (error) {
         console.error(error);
       } else {
