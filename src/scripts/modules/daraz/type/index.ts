@@ -54,3 +54,52 @@ type TLevelThree = {
  */
 
 type Categories = TLevelOne;
+
+// *****************
+type Product = {
+  images: { src: string; alt: string }[];
+  name: string;
+  price: {
+    original: string;
+    current: string;
+    discount: string;
+  };
+  selectors: Selector[];
+  ratings: {
+    score: number;
+    total: number; // total ratings the product got
+    detail: {
+      // how many people gave this rating (looks like count is broken in daraz)
+      // total rating doesn't match the individual count?.?
+      5: number;
+      4: number;
+      3: number;
+      2: number;
+      1: number;
+    };
+    reviewTags: {
+      label: string;
+      count: number;
+    }[];
+    details: {
+      highlights: { label: string }[];
+      contents: { label: string }[];
+      specification: { title: string; value: string }[];
+    };
+  };
+};
+
+type ImageVariant = { src: string; alt: string };
+type Variant = {
+  image?: {
+    src: string;
+    alt: string;
+  };
+  label?: string;
+};
+
+type Selector = {
+  title: string; // it's on the left side, like a key
+  variant: string;
+  variants: Variant[];
+};

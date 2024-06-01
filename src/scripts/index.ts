@@ -5,6 +5,7 @@ import { Pages, checkSite } from "./utils";
 
 // we should better handle comunation with server
 
+console.log("dontent loader");
 (async function () {
   console.log(" i am running");
   const { currentPage, whiteListed } = checkSite();
@@ -48,6 +49,7 @@ import { Pages, checkSite } from "./utils";
 
     case Pages.PRODUCT: {
       console.log("product page");
+      daraz.scrapProduct();
       break;
     }
   }

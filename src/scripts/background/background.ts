@@ -22,3 +22,9 @@ chrome.runtime.onMessage.addListener(async (message: Message, _, __) => {
     }
   }
 });
+
+// chrome.tabs.on.addListener((tabId, changeInfo, tab) => {
+//   if (changeInfo.status === "complete" && tab.active) {
+//     console.log("loogggg");
+//   }
+// });

@@ -1,6 +1,6 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { cherryAxios } from "../../utils/axios";
-import { getElement } from "../../utils/index";
+import { getElement, getElements } from "../../utils/index";
 
 interface DarazScrapperInterface {
   scrapCategories(): void;
@@ -29,7 +29,7 @@ class DarazScrapper implements DarazScrapperInterface {
 
     // this is the NodeList of all the categories at level 1
     const level_1_cates_EL = rootCate.querySelectorAll<HTMLLIElement>(
-      ".lzd-site-menu-root-item",
+      ".lzd-site-menu-root-item"
     );
 
     // we will parse the DOM and store level_1 categories here
@@ -139,6 +139,121 @@ class DarazScrapper implements DarazScrapperInterface {
       }
       console.error({ error }, "from save categories");
     }
+  }
+
+  // scrap general products page Level_2 categories page
+  scrapProducts() {
+    // const generalProductsEL = getElement("[data-spm='sku']");
+  }
+
+  // scrap single product from product page
+  scrapProduct() {
+    // find carousel and select it
+    // find image src and alt
+    // ok great, img.item-gallery__thumbnail-image is the elemnt we want
+    const product = {
+      images: [],
+      selectors: [],
+    } as Partial<Product>;
+
+    const galleryImages = getElements(".item-gallery__image-wrapper img");
+    galleryImages.forEach((image) => {
+      const alt = image.getAttribute("alt")!;
+      const src = image.getAttribute("src")!;
+      product.images?.push({
+        alt,
+        src,
+      });
+    });
+
+    // find product name and scrap :)
+    const nameEL = getElement(".pdp-mod-product-badge-title");
+    const productName = nameEL?.textContent?.trim()!;
+    product.name = productName;
+
+    // find and scrap prices
+    const currentPriceEL = getElement(".pdp-price_type_normal");
+    const currentPrice = currentPriceEL?.textContent?.trim()!;
+
+    const originalPriceEL = getElement(".pdp-price_type_deleted");
+    const originPrice = originalPriceEL?.textContent?.trim()!;
+
+    const discountEL = getElement(".pdp-product-price__discount");
+    const discountedPrice = discountEL?.textContent?.trim()!;
+
+    product.price = {
+      current: currentPrice,
+      original: originPrice,
+      discount: discountedPrice,
+    };
+
+    // scrap selectors and variants
+    /**
+     * div.sku-selector
+     *  div.sku-prop[]
+     *    div
+     *       h6.section-title
+     *       div.section-content
+     *          div.sku-prop-content-header > span > textContent
+     *          div.sku-prop-content
+     *
+     *
+     */
+    const selectors: Selector[] = [];
+    const skuSelectorEL = getElement(".sku-selector");
+    console.log({ skuSelectorEL });
+    skuSelectorEL?.querySelectorAll(".sku-prop").forEach((prop) => {
+      console.log({ prop });
+      // get title
+      const sectionTitle = prop
+        .querySelector("h6.section-title")
+        ?.textContent?.trim()!; // color-family
+
+      const sectionContentEL = prop.querySelector(".section-content");
+      // section content can have header (or not)
+      const propTitleEL = sectionContentEL?.querySelector(
+        ".sku-prop-content-header" // .sku-name -> Blank
+      );
+      const propSectionTitle = prop
+        .querySelector(".sku-name")
+        ?.textContent?.trim()!;
+
+      console.log({ propTitleEL, propSectionTitle });
+      const propContent = prop.querySelector(".sku-prop-content");
+
+      // contents can have bunch of images without textContent
+      // or variants with textContent
+
+      const variants: Variant[] = [];
+
+      propContent
+        ?.querySelectorAll(".sku-variable-name-text")
+        .forEach((variant) => {
+          const variantLabel = variant.textContent?.trim()!;
+
+          variants.push({ label: variantLabel });
+        });
+
+      propContent?.querySelectorAll("img").forEach((variant) => {
+        const src = variant.getAttribute("src")!;
+        const alt = variant.getAttribute("alt")!;
+        variants.push({ image: { src, alt } });
+      });
+      propContent?.querySelectorAll;
+
+      const selector: Selector = {
+        title: sectionTitle,
+        variant: propSectionTitle,
+        variants,
+      };
+
+      selectors.push(selector);
+    });
+
+    product.selectors = selectors;
+
+    console.log({ product });
+    // return product;
   }
 }
 
