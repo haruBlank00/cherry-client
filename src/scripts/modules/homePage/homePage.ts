@@ -1,3 +1,5 @@
+import { getElement } from "../../utils";
+
 interface HomePageInterface {
   // Product component that takes props and return HTML
   Product: (product: Product) => string;
@@ -6,12 +8,12 @@ interface HomePageInterface {
 }
 export class HomePage implements HomePageInterface {
   Product = (product: Product) => {
-    const { name, url } = product;
+    const { name = "", url = "" } = product;
     const {
-      price: { current, discount, original },
+      price: { current = 0, discount = 0, original = 0 },
     } = product;
     const {
-      ratingsAndReviews: { score, total },
+      ratingsAndReviews: { score = 0, total = 0 },
     } = product;
     const { alt = "", src = "" } = product.images?.[0] || {};
     return `
@@ -21,9 +23,9 @@ export class HomePage implements HomePageInterface {
           >
            <figure>
              <img
+             class='block w-32 h-32 mx-auto m-4'
               src=${src}
               alt=${alt}
-              class="w-full h-48 block object-contain"
             />
            </figure>
             <div class="p-4">
@@ -97,7 +99,10 @@ export class HomePage implements HomePageInterface {
   };
 
   appendEL(rootEL: Element, htmlStr: string) {
-    rootEL.insertAdjacentHTML("beforeend", htmlStr);
+    console.log({ htmlStr });
+    const product = getElement("#products");
+
+    rootEL?.insertAdjacentHTML("beforeend", htmlStr);
   }
 }
 

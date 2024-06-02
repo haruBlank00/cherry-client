@@ -101,7 +101,7 @@ const startScrap = async () => {
     }
   }
 };
-startScrap();
+// startScrap();
 
 window.addEventListener("load", async () => {
   try {
@@ -130,8 +130,12 @@ async function cherryScrapperPage() {
       const productsEL = document.querySelector("#products")!;
       data.forEach((product) => {
         console.log({ product });
-        const productHTML = homePage.Product(product)!;
-        homePage.appendEL(productsEL, productHTML);
+        try {
+          const productHTML = homePage.Product(product)!;
+          homePage.appendEL(productsEL, productHTML);
+        } catch (error) {
+          console.error(error);
+        }
       });
     }
   } catch (e) {
