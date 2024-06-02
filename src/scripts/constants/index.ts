@@ -1,7 +1,9 @@
 export const EventsEnum = {
   SAVE_CATEGORIES: "SAVE_CATEGORIES",
   SAVE_PRODUCT: "SAVE_PRODUCT",
+  SAVE_PRODUCTS: "SAVE_PRODUCTS",
   GET_VISITED_LINKS: "GET_VISITED_LINKS",
+  QUEUE_LINKS: "QUEUE_LINKS",
 };
 
 export type EVENTS = keyof typeof EventsEnum;

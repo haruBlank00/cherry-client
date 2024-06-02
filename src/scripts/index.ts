@@ -1,7 +1,8 @@
 import { EventsEnum } from "./constants";
 import { daraz } from "./modules/daraz/darazScrapper";
+import { queueProcessor } from "./modules/queueProcessor/queueProcessor";
 import { scrapTracker } from "./modules/scrapTracker/ScrapTracker";
-import { Pages, checkSite } from "./utils";
+import { Pages, checkSite, getElements } from "./utils";
 import { cherryAxios } from "./utils/axios";
 
 // we should better handle comunation with server
@@ -40,9 +41,46 @@ const startScrap = async () => {
 
     case Pages.LEVEL_1: {
       console.log("level 1 category");
-      const url =
-        "https://www.daraz.com.np/products/zeblaze-beyond-3-pro-gps-smart-watch-ultra-hd-amoled-display-built-in-gps-route-import-bluetooth-calling-ip68-water-resistance-1-year-warranty-i131875485-s1039111864.html?spm=a2a0e.searchlistcategory.sku.1.147a4688Ho36oU&search=1";
-      const product = await daraz.scrapProductFromLink(url);
+      // we can scrap level 2 categories links
+      // and extract data from the link without visiting the link
+      // const url =
+      //   "https://www.daraz.com.np/products/zeblaze-beyond-3-pro-gps-smart-watch-ultra-hd-amoled-display-built-in-gps-route-import-bluetooth-calling-ip68-water-resistance-1-year-warranty-i131875485-s1039111864.html?spm=a2a0e.searchlistcategory.sku.1.147a4688Ho36oU&search=1";
+      // const product = await daraz.scrapProductFromLink(url);
+      const productCardsEL = getElements("[data-tracking='product-card'");
+      const productsLink: string[] = [];
+      productCardsEL.forEach((productCard) => {
+        const href =
+          productCard.querySelector(":scope > a")?.getAttribute("href") || "";
+        productsLink.push(href);
+      });
+
+      // same links are repeated so we need to filter them
+      // and these links have https prefix so let's add that too
+      const uniqueProductsLink = [...new Set(productsLink)]
+        .filter((link) => Boolean(link))
+        .map((link) => `https:${link}`);
+
+      const { currentQueues = [] } = await chrome.storage.local.get(
+        EventsEnum.QUEUE_LINKS
+      );
+      await chrome.storage.local.set({
+        [EventsEnum.QUEUE_LINKS]: [...currentQueues, ...uniqueProductsLink],
+      });
+
+      const { error, results } = await queueProcessor.processQueue();
+
+      if (error) {
+        // handle error
+        console.log(error.message);
+      }
+      console.log("emit save catesss");
+
+      // proceed to making server request
+      // send data to server
+      await chrome.runtime.sendMessage({
+        type: EventsEnum.SAVE_PRODUCTS,
+        data: results,
+      });
       break;
     }
 
@@ -52,10 +90,8 @@ const startScrap = async () => {
     }
 
     case Pages.PRODUCT: {
-      console.log("product page");
       const product = daraz.scrapProduct();
       if (product) {
-        console.log("event emittttt");
         chrome.runtime.sendMessage({
           type: EventsEnum.SAVE_PRODUCT,
           data: product,

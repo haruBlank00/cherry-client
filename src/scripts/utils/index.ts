@@ -85,3 +85,11 @@ export function checkSite() {
     currentPage: null,
   };
 }
+
+export const selectXItems = <T>(items: T[], x: number, remove = false) => {
+  const itemsToSelect = Math.min(items.length, x);
+  if (remove) {
+    return items.splice(0, itemsToSelect);
+  }
+  return items.slice(0, itemsToSelect);
+};

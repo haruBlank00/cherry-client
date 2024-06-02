@@ -439,7 +439,7 @@ class DarazScrapper implements DarazScrapperInterface {
     };
 
     const skuProperties = fields?.productOption?.skuBase?.properties;
-    const selectors = skuProperties?.reduce(
+    const selectors: Selector[] = skuProperties?.reduce(
       (acc: any, curr: { name: any; values: any[] }) => {
         const title = curr.name;
         let variant = "";
@@ -453,16 +453,19 @@ class DarazScrapper implements DarazScrapperInterface {
             return { image: src };
           }
 
-          variant = value.name;
-          return {
-            label: value.value.nam,
-          };
+          variant = value?.name;
+
+          const subVariants: { name: string; vid: number }[] =
+            value.value || [];
+          return subVariants.map((subVariant) => ({
+            label: subVariant.name,
+          }));
         });
 
         const selector = {
           title,
           variant,
-          variants,
+          variants: variants[0],
         };
         return [...acc, selector];
       },
@@ -470,7 +473,6 @@ class DarazScrapper implements DarazScrapperInterface {
     );
 
     const highlightsHTMLstring = fields?.product?.highlights;
-    console.log({ highlightsHTMLstring });
 
     const highlightsEL = parser.parseFromString(
       highlightsHTMLstring,
@@ -523,16 +525,15 @@ class DarazScrapper implements DarazScrapperInterface {
 
   async saveProduct(product: Product) {
     try {
-      const response = await cherryAxios<
-        AxiosResponse<{ success: boolean; message: string }>
-      >({
+      const response = await cherryAxios({
         url: "/daraz/save-product",
         method: "POST",
         data: product,
       });
+      console.log({ response });
 
-      if (!response.data.data.success) {
-        throw Error(response.data.data.message);
+      if (!response.data.success) {
+        throw Error(response.data.message);
       }
     } catch (error) {
       if (error instanceof AxiosError) {
