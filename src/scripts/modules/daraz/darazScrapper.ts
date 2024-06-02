@@ -374,23 +374,151 @@ class DarazScrapper implements DarazScrapperInterface {
     return product as Product;
   }
 
-  async scrapProductFromLink(url: string): Promise<undefined> {
+  // extract data from server hydration data if the page has not been visited
+  // we can pass the product link and it will parse
+  // we can use it to scrap multiple products
+  async scrapProductFromLink(url: string): Promise<Product | null> {
     const response = await cherryAxios({
       url,
       method: "GET",
     });
     const parser = new DOMParser();
     const html = response.data;
-    const doc = parser.parseFromString(html, "text/html");
-
-    const product = daraz.scrapProduct(doc);
-    console.log({ product }, "*** proud product");
     const appDataRegex = /app\.run\((\{.*?\})\)/;
     const appDataResult = html.match(appDataRegex);
-    if (appDataResult) {
-      const appData = appDataResult[1];
-      console.log({ fields: JSON.parse(appData)?.data?.root?.fields });
+    if (!appDataResult) {
+      return null;
     }
+    const appData = appDataResult[1];
+    const fields = JSON.parse(appData)?.data?.root?.fields;
+    /**
+     * fields = {... product}
+     */
+    const name = fields?.product?.title;
+
+    const prices = fields?.skuInfos[0]?.price;
+    const price = {
+      discount: prices?.discount,
+      // we also have value in number (1499), text => Rs. 1499
+      current: prices?.salePrice.text,
+      original: prices?.originalPrice.text,
+    };
+
+    const reviews = fields?.pc_reviews_v3;
+    const detail = reviews?.scores.reduce(
+      (
+        acc: Record<number, number>,
+        curr: number,
+        index: number,
+        scores: number[]
+      ) => {
+        const star = scores.length - index;
+        acc[star] = curr;
+        return acc;
+      },
+      {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      }
+    );
+
+    const reviewTags = reviews?.reviewTags?.map(
+      (tag: { name: string; reviewCount: number }) => ({
+        tag: tag.name,
+        count: tag.reviewCount,
+      })
+    );
+    const ratingsAndReviews = {
+      score: reviews?.rating,
+      total: reviews?.allReviewsCount,
+      detail,
+      reviewTags,
+    };
+
+    const skuProperties = fields?.productOption?.skuBase?.properties;
+    const selectors = skuProperties?.reduce(
+      (acc: any, curr: { name: any; values: any[] }) => {
+        const title = curr.name;
+        let variant = "";
+
+        const variants = curr.values.map((value) => {
+          // value can be object with image or without image
+          const hasImage = value.hasOwnProperty("image");
+          if (hasImage) {
+            variant = "N/A";
+            const src = value.image;
+            return { image: src };
+          }
+
+          variant = value.name;
+          return {
+            label: value.value.nam,
+          };
+        });
+
+        const selector = {
+          title,
+          variant,
+          variants,
+        };
+        return [...acc, selector];
+      },
+      []
+    );
+
+    const highlightsHTMLstring = fields?.product?.highlights;
+    console.log({ highlightsHTMLstring });
+
+    const highlightsEL = parser.parseFromString(
+      highlightsHTMLstring,
+      "text/html"
+    );
+
+    const highlights: { label: string }[] = [];
+    highlightsEL
+      .querySelectorAll("li")
+      .forEach((highlightEL) =>
+        highlights.push({ label: highlightEL?.textContent?.trim()! })
+      );
+    const specifications = Object.values(
+      fields?.specifications as { features: {} }[]
+    ).map((specification) => {
+      return Object.entries(specification.features).map(([key, value]) => {
+        return {
+          title: key,
+          value: value as string,
+        };
+      });
+    });
+
+    const contents = fields?.product?.desc || "";
+    const details = {
+      highlights,
+      specifications: specifications.reduce(
+        (acc, curr) => [...acc, ...curr],
+        []
+      ),
+      contents,
+    };
+
+    const images = (fields?.skuGalleries[0] || []).map(
+      (gallery: { src: string }) => ({
+        src: gallery.src,
+        alt: "", // alt is not in this data, we need to find it from somewhere else :(
+      })
+    );
+    const product: Product = {
+      name,
+      price,
+      ratingsAndReviews,
+      selectors,
+      details,
+      images,
+    };
+    return product;
   }
 
   async saveProduct(product: Product) {

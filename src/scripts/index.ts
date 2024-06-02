@@ -41,7 +41,7 @@ const startScrap = async () => {
     case Pages.LEVEL_1: {
       console.log("level 1 category");
       const url =
-        "https://www.daraz.com.np/products/moonstar-stretchable-lights-jacket-women-wrinkle-jacket-fashion-multicolor-hooded-jackets-for-women-womens-wear-i105428083-s1027156225.html?spm=a2a0e.searchlistcategory.sku.1.770c2fd5FR57Pn&search=1";
+        "https://www.daraz.com.np/products/zeblaze-beyond-3-pro-gps-smart-watch-ultra-hd-amoled-display-built-in-gps-route-import-bluetooth-calling-ip68-water-resistance-1-year-warranty-i131875485-s1039111864.html?spm=a2a0e.searchlistcategory.sku.1.147a4688Ho36oU&search=1";
       const product = await daraz.scrapProductFromLink(url);
       break;
     }
