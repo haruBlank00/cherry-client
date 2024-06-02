@@ -1,5 +1,6 @@
 import { EventsEnum } from "./constants";
 import { daraz } from "./modules/daraz/darazScrapper";
+import { homePage } from "./modules/homePage/homePage";
 import { queueProcessor } from "./modules/queueProcessor/queueProcessor";
 import { scrapTracker } from "./modules/scrapTracker/ScrapTracker";
 import { Pages, checkSite, getElements } from "./utils";
@@ -102,10 +103,38 @@ const startScrap = async () => {
 };
 startScrap();
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   try {
     startScrap();
+
+    // hanck and slash :3
+    if (window.location.href === "http://localhost:5173/") {
+      cherryScrapperPage();
+    }
   } catch (error) {
     console.error("Error in startScrap:", error);
   }
 });
+
+async function cherryScrapperPage() {
+  try {
+    const response = await cherryAxios({
+      method: "GET",
+      url: "/daraz/get-products",
+    });
+    const { data, success } = response.data as {
+      success: boolean;
+      data: Product[];
+    };
+    if (success) {
+      const productsEL = document.querySelector("#products")!;
+      data.forEach((product) => {
+        console.log({ product });
+        const productHTML = homePage.Product(product)!;
+        homePage.appendEL(productsEL, productHTML);
+      });
+    }
+  } catch (e) {
+    // error handle
+  }
+}

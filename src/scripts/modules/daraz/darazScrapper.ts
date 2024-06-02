@@ -370,6 +370,8 @@ class DarazScrapper implements DarazScrapperInterface {
       });
 
     product.details = details;
+    const { origin, pathname } = window.location;
+    product.url = origin + pathname;
 
     return product as Product;
   }
@@ -519,6 +521,7 @@ class DarazScrapper implements DarazScrapperInterface {
       selectors,
       details,
       images,
+      url,
     };
     return product;
   }

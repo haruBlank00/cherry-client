@@ -63,6 +63,7 @@ type Product = {
   selectors: Selector[];
   ratingsAndReviews: RatingsAndReview;
   details: Details;
+  url: string;
 };
 
 type Price = {

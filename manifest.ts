@@ -15,6 +15,7 @@ export const manifest: ManifestV3Export = {
   },
 
   action: {
+    default_popup: "index.html",
     default_icon: {
       "16": "images/icon-16.png",
       "32": "images/icon-32.png",
@@ -32,8 +33,16 @@ export const manifest: ManifestV3Export = {
 
   content_scripts: [
     {
-      matches: ["*://*/*"],
+      // matches: ["*://*/*"],
+      matches: ["<all_urls>"],
       js: ["src/scripts/index.ts"],
+      // css: ["src/style.css"],
+    },
+  ],
+  web_accessible_resources: [
+    {
+      resources: ["*.js", "*.css", "*.svg"],
+      matches: ["*://*/*"],
     },
   ],
 };

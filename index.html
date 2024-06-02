@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>Cheery scrapper</title>
+    <!-- having issue linking css -->
+    <link rel="stylesheet" href="src/style.css" />
   </head>
-  <body>
-    <div id="app" style="width: 200px">
-      Hello cherry scrapper
-      <button id="changeColor">Change color</button>
-    </div>
+  <body class="bg-purple-100 container mx-auto p-6">
+    <h1 class="text-purple-700 text-xl py-6">Cherry Scrapper :)</h1>
+    <div
+      id="products"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+    ></div>
 
     <script type="module" src="src/scripts/index.ts"></script>
   </body>

@@ -18,7 +18,6 @@ class ScrapTracker {
    * @returns boolean
    */
   async isScrapable(link?: string) {
-    return true;
     // hash after the last `.`  is dynamic so let's discard that
     // and only care about url before it
     const { visited_site } = await chrome.storage.local.get("visited_site");

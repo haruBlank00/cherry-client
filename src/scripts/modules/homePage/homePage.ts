@@ -1,0 +1,98 @@
+export class HomePage {
+  Product = (product: Product) => {
+    const { name, url } = product;
+    const {
+      price: { current, discount, original },
+    } = product;
+    const {
+      ratingsAndReviews: { score, total },
+    } = product;
+    const { alt = "", src = "" } = product.images?.[0] || {};
+    return `
+          <a
+            href="${url}"
+            class="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+          >
+           <figure>
+             <img
+              src=${src}
+              alt=${alt}
+              class="w-full h-48 block object-contain"
+            />
+           </figure>
+            <div class="p-4">
+              <h2 class="text-xl font-semibold mb-2">${name}</h2>
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-lg font-bold text-green-600">${current}</div>
+                <div class="text-sm text-gray-500 line-through">${original}</div>
+                <div class="text-sm text-red-600">${discount} off</div>
+              </div>
+              <div class="flex items-center mb-4">
+                <div class="flex items-center">
+                  <!-- Rating stars based on the score -->
+                  <div class="flex items-center text-yellow-500">
+                  <span>${score} / 5</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                      />
+                    </svg>
+                  </div>
+                  <span class="ml-2 text-gray-600">(${total})</span>
+                </div>
+              </div>
+            </div>
+          </a>`;
+  };
+
+  appendEL(rootEL: Element, htmlStr: string) {
+    rootEL.insertAdjacentHTML("beforeend", htmlStr);
+  }
+}
+
+export const homePage = new HomePage();
