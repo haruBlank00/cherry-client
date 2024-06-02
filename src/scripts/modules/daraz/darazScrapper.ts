@@ -150,7 +150,8 @@ class DarazScrapper implements DarazScrapperInterface {
   }
 
   // scrap single product from product page
-  scrapProduct(): Product | null {
+  // this is for when we visit the individual product page
+  scrapProduct(rootEL?: Document): Product | null {
     // find carousel and select it
     // find image src and alt
     // ok great, img.item-gallery__thumbnail-image is the elemnt we want
@@ -159,7 +160,10 @@ class DarazScrapper implements DarazScrapperInterface {
     } as Partial<Product>;
 
     const images: ImageVariant[] = [];
-    const galleryImages = getElements(".item-gallery__image-wrapper img");
+    const galleryImages = getElements(
+      ".item-gallery__image-wrapper img",
+      rootEL
+    );
     galleryImages.forEach((image) => {
       const alt = image.getAttribute("alt")!;
       const src = image.getAttribute("src")!;
@@ -174,18 +178,18 @@ class DarazScrapper implements DarazScrapperInterface {
     }
 
     // find product name and scrap :)
-    const nameEL = getElement(".pdp-mod-product-badge-title");
+    const nameEL = getElement(".pdp-mod-product-badge-title", rootEL);
     const productName = nameEL?.textContent?.trim()!;
     product.name = productName;
 
     // find and scrap prices
-    const currentPriceEL = getElement(".pdp-price_type_normal");
+    const currentPriceEL = getElement(".pdp-price_type_normal", rootEL);
     const currentPrice = currentPriceEL?.textContent?.trim()!;
 
-    const originalPriceEL = getElement(".pdp-price_type_deleted");
+    const originalPriceEL = getElement(".pdp-price_type_deleted", rootEL);
     const originPrice = originalPriceEL?.textContent?.trim()!;
 
-    const discountEL = getElement(".pdp-product-price__discount");
+    const discountEL = getElement(".pdp-product-price__discount", rootEL);
     const discountedPrice = discountEL?.textContent?.trim()!;
 
     const price = {
@@ -211,7 +215,7 @@ class DarazScrapper implements DarazScrapperInterface {
      *
      */
     const selectors: Selector[] = [];
-    const skuSelectorEL = getElement(".sku-selector");
+    const skuSelectorEL = getElement(".sku-selector", rootEL);
     skuSelectorEL?.querySelectorAll(".sku-prop").forEach((prop) => {
       // get title
       const sectionTitle = prop
@@ -280,12 +284,18 @@ class DarazScrapper implements DarazScrapperInterface {
       reviewTags: [],
       total: "0",
     };
-    const score = getElement(".review-info .score")?.textContent?.trim()!;
-    const total = getElement(".review-info .rate-num")?.textContent?.trim()!;
+    const score = getElement(
+      ".review-info .score",
+      rootEL
+    )?.textContent?.trim()!;
+    const total = getElement(
+      ".review-info .rate-num",
+      rootEL
+    )?.textContent?.trim()!;
     ratingsAndReview.score = score;
     ratingsAndReview.total = total;
 
-    const detailEL = getElement(".review-info .detail");
+    const detailEL = getElement(".review-info .detail", rootEL);
     detailEL?.querySelectorAll("li").forEach((detailEl, index, array) => {
       const arrayLength = array.length;
       const star = (arrayLength -
@@ -297,7 +307,7 @@ class DarazScrapper implements DarazScrapperInterface {
     // now let's do for ratings and review
     // what people like about it
 
-    getElements(".review-filter").forEach((reviewTagEL) => {
+    getElements(".review-filter", rootEL).forEach((reviewTagEL) => {
       const tagNcount = reviewTagEL
         ?.querySelector(".review-filter .review-tag")
         ?.textContent?.trim()!;
@@ -330,7 +340,7 @@ class DarazScrapper implements DarazScrapperInterface {
     };
 
     // find highlights
-    getElement(".pdp-product-highlights")
+    getElement(".pdp-product-highlights", rootEL)
       ?.querySelectorAll("li")
       .forEach((highlightEL) => {
         const highlight = highlightEL.textContent?.trim()!;
@@ -340,11 +350,11 @@ class DarazScrapper implements DarazScrapperInterface {
       });
 
     // find contents
-    const contents = getElement(".detail-content")?.textContent;
+    const contents = getElement(".detail-content", rootEL)?.textContent;
     details.contents = contents || "";
 
     // find specifications
-    getElement("ul.specification-keys")
+    getElement("ul.specification-keys", rootEL)
       ?.querySelectorAll("li")
       .forEach((specificationEL) => {
         const title = specificationEL
@@ -362,6 +372,25 @@ class DarazScrapper implements DarazScrapperInterface {
     product.details = details;
 
     return product as Product;
+  }
+
+  async scrapProductFromLink(url: string): Promise<undefined> {
+    const response = await cherryAxios({
+      url,
+      method: "GET",
+    });
+    const parser = new DOMParser();
+    const html = response.data;
+    const doc = parser.parseFromString(html, "text/html");
+
+    const product = daraz.scrapProduct(doc);
+    console.log({ product }, "*** proud product");
+    const appDataRegex = /app\.run\((\{.*?\})\)/;
+    const appDataResult = html.match(appDataRegex);
+    if (appDataResult) {
+      const appData = appDataResult[1];
+      console.log({ fields: JSON.parse(appData)?.data?.root?.fields });
+    }
   }
 
   async saveProduct(product: Product) {

@@ -1,9 +1,9 @@
-export const getElement = (selector: string) => {
-  return document.querySelector(selector);
+export const getElement = (selector: string, rootEL?: Document) => {
+  return (rootEL || document).querySelector(selector);
 };
 
-export const getElements = (selector: string) => {
-  return document.querySelectorAll(selector);
+export const getElements = (selector: string, rootEL?: Document) => {
+  return (rootEL || document).querySelectorAll(selector);
 };
 
 export enum Pages {
@@ -29,6 +29,7 @@ export function checkSite() {
 
   const currentOrigin = window.location.origin;
   const isWhiteListed = whiteListeOrigins.includes(currentOrigin);
+  console.log({ currentOrigin, isWhiteListed });
   if (!isWhiteListed) {
     return {
       whiteListed: false,

@@ -2,6 +2,7 @@ import { EventsEnum } from "./constants";
 import { daraz } from "./modules/daraz/darazScrapper";
 import { scrapTracker } from "./modules/scrapTracker/ScrapTracker";
 import { Pages, checkSite } from "./utils";
+import { cherryAxios } from "./utils/axios";
 
 // we should better handle comunation with server
 
@@ -13,6 +14,8 @@ const startScrap = async () => {
     );
     return;
   }
+
+  // console.log({ appData: JSON.parse(appData) });
 
   const isScrapable = await scrapTracker.isScrapable();
   if (!isScrapable) {
@@ -37,6 +40,9 @@ const startScrap = async () => {
 
     case Pages.LEVEL_1: {
       console.log("level 1 category");
+      const url =
+        "https://www.daraz.com.np/products/moonstar-stretchable-lights-jacket-women-wrinkle-jacket-fashion-multicolor-hooded-jackets-for-women-womens-wear-i105428083-s1027156225.html?spm=a2a0e.searchlistcategory.sku.1.770c2fd5FR57Pn&search=1";
+      const product = await daraz.scrapProductFromLink(url);
       break;
     }
 

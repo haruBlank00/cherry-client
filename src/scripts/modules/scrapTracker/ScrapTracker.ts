@@ -17,11 +17,8 @@ class ScrapTracker {
    * else it has already been scrapped -> return false
    * @returns boolean
    */
-  async isScrapable() {
-    await chrome.storage.local.set({
-      visited_site: [],
-    });
-
+  async isScrapable(link?: string) {
+    return true;
     // hash after the last `.`  is dynamic so let's discard that
     // and only care about url before it
     const { visited_site } = await chrome.storage.local.get("visited_site");
@@ -30,13 +27,13 @@ class ScrapTracker {
         visited_site: [],
       });
     }
-    const href = window.location.href;
+    const href = link || window.location.href;
     const fragments = href.split(".");
     fragments.pop();
     const hrefWithoutHash = fragments.join(".");
 
     const isScraped = visited_site.find(
-      (site: string) => site === hrefWithoutHash,
+      (site: string) => site === hrefWithoutHash
     );
     if (Boolean(isScraped)) {
       // if it's already scraped, we don't need to scrap again
