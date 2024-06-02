@@ -19,7 +19,11 @@ const startScrap = async () => {
 
   // console.log({ appData: JSON.parse(appData) });
 
-  const isScrapable = await scrapTracker.isScrapable();
+  let isScrapable = false;
+  isScrapable = await scrapTracker.isScrapable();
+  const isCategoryPage = currentPage === Pages.LEVEL_1;
+  if (isCategoryPage) isScrapable = true;
+
   if (!isScrapable) {
     console.log("*** *** ALREADY SCRAPPED *** ***");
     return;
@@ -68,6 +72,8 @@ const startScrap = async () => {
         [EventsEnum.QUEUE_LINKS]: [...currentQueues, ...uniqueProductsLink],
       });
 
+      await queueProcessor.processQueue();
+
       const { error, results } = await queueProcessor.processQueue();
 
       if (error) {
@@ -82,6 +88,7 @@ const startScrap = async () => {
         type: EventsEnum.SAVE_PRODUCTS,
         data: results,
       });
+
       break;
     }
 
@@ -101,7 +108,7 @@ const startScrap = async () => {
     }
   }
 };
-// startScrap();
+startScrap();
 
 window.addEventListener("load", async () => {
   try {

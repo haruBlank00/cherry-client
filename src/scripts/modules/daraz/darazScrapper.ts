@@ -402,9 +402,9 @@ class DarazScrapper implements DarazScrapperInterface {
       method: "GET",
     });
     const parser = new DOMParser();
-    const html = response.data;
+    const html: string = response?.data?.data || "";
     const appDataRegex = /app\.run\((\{.*?\})\)/;
-    const appDataResult = html.match(appDataRegex);
+    const appDataResult = html?.match(appDataRegex);
     if (!appDataResult) {
       return null;
     }
@@ -419,8 +419,8 @@ class DarazScrapper implements DarazScrapperInterface {
     const price = {
       discount: prices?.discount,
       // we also have value in number (1499), text => Rs. 1499
-      current: prices?.salePrice.text,
-      original: prices?.originalPrice.text,
+      current: prices?.salePrice?.text,
+      original: prices?.originalPrice?.text,
     };
 
     const reviews = fields?.pc_reviews_v3;
