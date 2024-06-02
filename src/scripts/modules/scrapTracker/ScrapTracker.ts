@@ -3,7 +3,11 @@
  *
  * visitedSited = []? simple array will do?
  */
-class ScrapTracker {
+interface ScrapTrackerInterface {
+  isScrapable: (link?: string) => Promise<boolean>;
+}
+
+class ScrapTracker implements ScrapTrackerInterface {
   public static scrapTracker: ScrapTracker;
   static getInstance() {
     if (!this.scrapTracker) {

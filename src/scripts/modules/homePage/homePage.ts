@@ -1,4 +1,10 @@
-export class HomePage {
+interface HomePageInterface {
+  // Product component that takes props and return HTML
+  Product: (product: Product) => string;
+  // append HTML string to DOM
+  appendEL: (rootEL: Element, htmlStr: string) => void;
+}
+export class HomePage implements HomePageInterface {
   Product = (product: Product) => {
     const { name, url } = product;
     const {

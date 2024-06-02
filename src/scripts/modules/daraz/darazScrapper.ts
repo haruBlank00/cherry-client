@@ -9,9 +9,26 @@ import {
 } from "./type/product.zod";
 
 interface DarazScrapperInterface {
+  // when we're on homepage, scrap categories
   scrapCategories(): void;
+  // save it do DB
   saveCategories(categories: TLevelOne[]): void;
+
+  // when we are in product page, scrap product
+  // with DOM
+  scrapProduct(rootEL?: Document): Product | null;
+  saveProduct(product: Product): void;
+
+  // when we are in category page, scrap product form url
+  // without DOM
+  scrapProductFromLink(link: string): Promise<Product | null>;
+  // saveProducts(products: Product[]): void;
 }
+
+/**
+ * Scrap data from daraz
+ *
+ */
 class DarazScrapper implements DarazScrapperInterface {
   private static instance: DarazScrapper;
   public static getInstance(): DarazScrapper {
