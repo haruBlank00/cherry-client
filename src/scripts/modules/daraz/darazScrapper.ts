@@ -138,16 +138,14 @@ class DarazScrapper implements DarazScrapperInterface {
    */
   async saveCategories(categories: TLevelOne[]) {
     try {
-      const response = await cherryAxios<
-        AxiosResponse<{ success: boolean; message: string }>
-      >({
+      const response = await cherryAxios({
         url: "/daraz/save-categories",
         method: "POST",
         data: categories,
       });
 
-      if (!response.data.data.success) {
-        throw Error(response.data.data.message);
+      if (!response.data.success) {
+        throw Error(response.data.message);
       }
     } catch (error) {
       if (error instanceof AxiosError) {
