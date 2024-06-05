@@ -328,7 +328,7 @@ class DarazScrapper implements DarazScrapperInterface {
         ?.textContent?.trim()!;
 
       const tagNcountPattern = /(\w+)\((\d+)\)/;
-      const tagNcountMatch = tagNcount.match(tagNcountPattern);
+      const tagNcountMatch = tagNcount?.match(tagNcountPattern);
 
       if (tagNcountMatch) {
         const [_, tag, count] = tagNcountMatch;
@@ -400,7 +400,7 @@ class DarazScrapper implements DarazScrapperInterface {
       method: "GET",
     });
     const parser = new DOMParser();
-    const html: string = response?.data?.data || "";
+    const html: string = response?.data || "";
     const appDataRegex = /app\.run\((\{.*?\})\)/;
     const appDataResult = html?.match(appDataRegex);
     if (!appDataResult) {

@@ -24,12 +24,13 @@ class ScrapTracker implements ScrapTrackerInterface {
   async isScrapable(link?: string) {
     // hash after the last `.`  is dynamic so let's discard that
     // and only care about url before it
-    const { visited_site } = await chrome.storage.local.get("visited_site");
+    let { visited_site = [] } = await chrome.storage.local.get("visited_site");
     if (!visited_site) {
       await chrome.storage.local.set({
         visited_site: [],
       });
     }
+    
     const href = link || window.location.href;
     const fragments = href.split(".");
     fragments.pop();

@@ -21,7 +21,7 @@ class QueueProcessor implements QueueProcessorInterface {
     // we won't run until the loop if the queue is empty
     // we will only run once
     // while (QUEUE_LINKS.length > 0) {
-    const itemsToProcess = selectXItems<string>(QUEUE_LINKS, 1, true).filter(
+    const itemsToProcess = selectXItems<string>(QUEUE_LINKS, 5, true).filter(
       (link) => scrapTracker.isScrapable(link)
     );
     const promisesOfLink = itemsToProcess.map(async (url) =>
